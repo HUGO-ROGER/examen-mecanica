@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Mecánica Básica - Soldadura Blanda y SMAW</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for native Excel (.xlsx) file export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Canvas Confetti for end celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0b132b;
+            color: #e0e6ed;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(28, 37, 65, 0.8) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(11, 19, 43, 0.9) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(58, 80, 107, 0.15) 0%, transparent 60%);
+            min-height: 100vh;
+        }
+
+        .tech-font {
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .header-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(28, 37, 65, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(91, 192, 190, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(11, 19, 43, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover:not(.disabled) {
+            border-color: rgba(91, 192, 190, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(91, 192, 190, 0.15);
+        }
+
+        .btn-glow {
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(91, 192, 190, 0.3);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(91, 192, 190, 0.6);
+            transform: scale(1.02);
+        }
+
+        /* Answer state animations */
+        .opt-correct {
+            background-color: rgba(16, 185, 129, 0.25) !important;
+            border-color: #10b981 !important;
+            color: #a7f3d0 !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .opt-incorrect {
+            background-color: rgba(239, 68, 68, 0.25) !important;
+            border-color: #ef4444 !important;
+            color: #fca5a5 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .timer-ring {
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b132b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a506b;
+            border-radius: 3px;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .pulse-danger {
+            animation: pulseGlow 0.8s infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between items-center p-3 md:p-6 min-h-screen">
+
+    <header class="w-full max-w-4xl flex items-center justify-between py-3 px-6 mb-4 glass-panel rounded-2xl">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xl">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+                <h1 class="header-font text-xs md:text-sm font-bold tracking-wider text-cyan-400 uppercase">Mecánica Básica</h1>
+                <p class="text-xs text-gray-400">Soldadura Blanda & SMAW</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-gray-300 hover:text-cyan-400 transition-colors border border-slate-700">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl flex-grow flex flex-col justify-center">
+
+        <!-- SCREEN 1: START SCREEN -->
+        <section id="startScreen" class="glass-panel rounded-3xl p-6 md:p-10 text-center relative overflow-hidden transition-all duration-500">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold mb-6">
+                <i class="fa-solid fa-fire-flame-curved"></i> Evaluativo Técnico Oficial
+            </div>
+
+            <h1 class="header-font text-2xl md:text-4xl font-extrabold text-white tracking-wide mb-3">
+                EXAMEN DE MECÁNICA BÁSICA
+            </h1>
+            <p class="text-gray-300 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                Evaluación de conocimientos sobre <span class="text-cyan-400 font-semibold">Soldadura Blanda con Estaño</span> y <span class="text-cyan-400 font-semibold">Soldadura por Arco Eléctrico SMAW</span>.
+            </p>
+
+            <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-700/60 max-w-md mx-auto mb-8 text-left space-y-3">
+                <div class="flex items-center gap-3 text-xs md:text-sm text-gray-300">
+                    <i class="fa-solid fa-list-check text-cyan-400 w-5 text-center"></i>
+                    <span><strong>10 preguntas</strong> seleccionadas aleatoriamente.</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs md:text-sm text-gray-300">
+                    <i class="fa-solid fa-stopwatch text-amber-400 w-5 text-center"></i>
+                    <span><strong>25 segundos</strong> por cada pregunta.</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs md:text-sm text-gray-300">
+                    <i class="fa-solid fa-award text-emerald-400 w-5 text-center"></i>
+                    <span>Puntaje máximo: <strong>20 puntos</strong> (2 pts c/u).</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs md:text-sm text-gray-300">
+                    <i class="fa-solid fa-file-excel text-green-500 w-5 text-center"></i>
+                    <span>Generación automática de reporte Excel/CSV.</span>
+                </div>
+            </div>
+
+            <div class="max-w-md mx-auto mb-8 text-left">
+                <label for="studentName" class="block text-xs font-semibold uppercase tracking-wider text-cyan-300 mb-2">
+                    Nombre completo del alumno <span class="text-red-400">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <input type="text" id="studentName" placeholder="Ej. Juan Carlos Pérez" 
+                        class="w-full pl-11 pr-4 py-3.5 bg-slate-900/90 border border-slate-700 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 rounded-xl text-white placeholder-gray-500 outline-none transition-all text-sm md:text-base"
+                        oninput="validateNameInput()" onkeypress="handleKeyPress(event)" />
+                </div>
+                <p id="nameError" class="text-red-400 text-xs mt-2 hidden flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> Por favor ingresa tu nombre completo para comenzar el examen.
+                </p>
+            </div>
+
+            <button id="startBtn" onclick="startExam()" 
+                class="btn-glow w-full max-w-md py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 header-font font-bold text-base rounded-xl transition-all flex items-center justify-center gap-3 mx-auto">
+                <span>INICIAR EXAMEN</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </section>
+
+        <!-- SCREEN 2: GAME EXAM SCREEN -->
+        <section id="quizScreen" class="glass-panel rounded-3xl p-4 md:p-8 hidden flex-col justify-between min-h-[500px]">
+            <!-- Top bar stats -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-700/60">
+                <div class="flex items-center gap-2 text-xs md:text-sm text-gray-300 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <i class="fa-solid fa-user-circle text-cyan-400"></i>
+                    <span id="displayStudentName" class="font-medium text-white truncate max-w-[150px] md:max-w-[220px]">Alumno</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span id="questionCounter" class="tech-font text-xs md:text-sm font-bold text-cyan-300 bg-cyan-950/60 border border-cyan-800/80 px-3 py-1.5 rounded-lg">
+                        Pregunta 1 de 10
+                    </span>
+                </div>
+
+                <!-- Circular Timer -->
+                <div class="flex items-center gap-2 bg-slate-900/80 px-3 py-1 rounded-xl border border-slate-700" id="timerBox">
+                    <div class="relative w-9 h-9 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="timerRing" class="timer-ring text-cyan-400" stroke-dasharray="100, 100" stroke-dashoffset="0" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span id="timerText" class="absolute tech-font text-xs font-bold text-white">25</span>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:inline">seg.</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-900/80 rounded-full h-2 mb-6 overflow-hidden p-0.5 border border-slate-800">
+                <div id="progressBar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500 ease-out" style="width: 10%"></div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="mb-6 flex-grow flex flex-col justify-center">
+                <div class="flex items-center gap-2 mb-3">
+                    <span id="topicBadge" class="text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        Mecánica Básica
+                    </span>
+                </div>
+                <h2 id="questionText" class="text-base md:text-xl font-medium text-white leading-relaxed">
+                    Cargando pregunta...
+                </h2>
+            </div>
+
+            <!-- Choices Grid -->
+            <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <!-- Dynamic choices injected via JS -->
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-700/60">
+                <div id="feedbackMessage" class="text-xs md:text-sm font-semibold opacity-0 transition-opacity duration-300 flex items-center gap-2">
+                    <i id="feedbackIcon" class="fa-solid"></i>
+                    <span id="feedbackText"></span>
+                </div>
+
+                <button id="nextBtn" onclick="handleNextClick()" disabled 
+                    class="ml-auto px-6 py-3 bg-slate-800 text-gray-500 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 cursor-not-allowed border border-slate-700">
+                    <span>SIGUIENTE</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: RESULTS SCREEN -->
+        <section id="resultsScreen" class="glass-panel rounded-3xl p-6 md:p-10 hidden text-center relative overflow-hidden">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-4">
+                <i class="fa-solid fa-circle-check"></i> Evaluación Finalizada
+            </div>
+
+            <h1 class="header-font text-2xl md:text-3xl font-extrabold text-white mb-2">
+                RESULTADOS DEL EXAMEN
+            </h1>
+            <p id="resStudentName" class="text-cyan-400 font-semibold text-lg mb-6">Alumno: Juan Pérez</p>
+
+            <!-- Score Display Box -->
+            <div class="max-w-md mx-auto bg-slate-900/80 border border-slate-700 rounded-2xl p-6 mb-8 relative">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Nota Final</div>
+                <div class="tech-font text-5xl md:text-6xl font-black text-white mb-2 tracking-tight">
+                    <span id="finalGrade" class="text-cyan-400">18</span> <span class="text-gray-500 text-2xl md:text-3xl">/ 20</span>
+                </div>
+                
+                <!-- Qualification Badge -->
+                <div id="gradeBadge" class="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6">
+                    Excelente
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
+                    <div class="bg-emerald-950/40 border border-emerald-800/40 p-3 rounded-xl">
+                        <div class="text-emerald-400 text-xs font-semibold mb-1 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Correctas
+                        </div>
+                        <div id="resCorrect" class="tech-font text-2xl font-bold text-emerald-300">9</div>
+                    </div>
+                    <div class="bg-rose-950/40 border border-rose-800/40 p-3 rounded-xl">
+                        <div class="text-rose-400 text-xs font-semibold mb-1 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-xmark"></i> Incorrectas
+                        </div>
+                        <div id="resIncorrect" class="tech-font text-2xl font-bold text-rose-300">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Notification Alert -->
+            <div id="downloadAlert" class="max-w-md mx-auto bg-cyan-950/40 border border-cyan-800/60 rounded-xl p-3 mb-6 text-cyan-300 text-xs flex items-center gap-2 justify-center">
+                <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                <span>El reporte de resultados se ha descargado automáticamente.</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+                <button onclick="downloadResultsFile()" 
+                    class="btn-glow w-full sm:w-auto flex-1 py-3.5 px-6 bg-emerald-500 hover:bg-emerald-400 text-slate-950 header-font font-bold text-xs md:text-sm rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-arrow-down text-lg"></i>
+                    <span>DESCARGAR RESULTADO</span>
+                </button>
+                <button onclick="restartExam()" 
+                    class="w-full sm:w-auto flex-1 py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-white header-font font-bold text-xs md:text-sm rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>NUEVO EXAMEN</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full max-w-4xl text-center py-4 text-xs text-gray-500 mt-4 border-t border-slate-800/60">
+        <p>Sistema Evaluativo Técnico • Mecánica Básica © 2026</p>
+    </footer>
+
+    <script>
+        /* RAW QUESTION BANK DATASET */
+        const RAW_QUESTION_BANK = [
+            // Soldadura Blanda con Estaño
+            {
+                q: "¿Cuál es el objetivo principal de la soldadura con estaño?",
+                options: ["Fundir completamente el metal base", "Unir piezas mediante un metal de aporte", "Cortar metales", "Endurecer el acero"],
+                answer: "Unir piezas mediante un metal de aporte",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "La soldadura con estaño se considera:",
+                options: ["Soldadura fuerte", "Soldadura por arco", "Soldadura blanda", "Soldadura por gas"],
+                answer: "Soldadura blanda",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué elemento facilita el flujo del estaño?",
+                options: ["Agua", "Pasta para soldar (Flux)", "Aceite", "Grasa"],
+                answer: "Pasta para soldar (Flux)",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Antes de soldar se debe:",
+                options: ["Pintar la superficie", "Limpiar la superficie", "Oxidar el metal", "Enfriar el metal"],
+                answer: "Limpiar la superficie",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Una mala limpieza produce:",
+                options: ["Mejor conductividad", "Unión deficiente", "Mayor resistencia", "Mayor temperatura"],
+                answer: "Unión deficiente",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "El estaño debe fundirse por:",
+                options: ["El flux", "La llama", "El calor de las piezas", "El aire"],
+                answer: "El calor de las piezas",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué ocurre si el cautín está muy frío?",
+                options: ["La soldadura queda brillante", "El estaño no moja la superficie", "Se evapora el estaño", "Se funde el cobre"],
+                answer: "El estaño no moja la superficie",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Una buena soldadura presenta aspecto:",
+                options: ["Mate y rugoso", "Brillante y uniforme", "Negro", "Agrietado"],
+                answer: "Brillante y uniforme",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué sucede si se aplica demasiado estaño en una placa electrónica?",
+                options: ["Mejora la unión", "Puede generar cortocircuitos", "Disminuye la temperatura", "Aumenta la resistencia mecánica"],
+                answer: "Puede generar cortocircuitos",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "La pasta para soldar sirve para:",
+                options: ["Pintar", "Eliminar óxidos", "Enfriar", "Lubricar"],
+                answer: "Eliminar óxidos",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué color suele tener una soldadura fría?",
+                options: ["Plateado brillante", "Mate", "Dorado", "Azul"],
+                answer: "Mate",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Cuánto tiempo debe mantenerse el cautín sobre la unión?",
+                options: ["Lo necesario para fundir correctamente", "30 segundos", "1 minuto", "Hasta que humee"],
+                answer: "Lo necesario para fundir correctamente",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué herramienta se usa normalmente para soldadura blanda?",
+                options: ["Amoladora", "Cautín", "Esmeril", "Taladro"],
+                answer: "Cautín",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "El exceso de temperatura en la soldadura blanda puede:",
+                options: ["Mejorar el acabado", "Dañar componentes", "Endurecer el cobre", "Reducir el consumo eléctrico"],
+                answer: "Dañar componentes",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "El flux evita principalmente:",
+                options: ["La oxidación", "El calentamiento", "La vibración", "El desgaste"],
+                answer: "La oxidación",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Antes de soldar un conductor eléctrico se debe:",
+                options: ["Pintarlo", "Pelarlo y limpiarlo", "Doblarlo", "Enfriarlo"],
+                answer: "Pelarlo y limpiarlo",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "La unión mecánica del empalme debe realizarse:",
+                options: ["Después de soldar", "Antes de soldar", "Nunca", "Solo con aluminio"],
+                answer: "Antes de soldar",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué potencia de cautín es adecuada para trabajos electrónicos?",
+                options: ["15-60 W", "500 W", "1000 W", "2000 W"],
+                answer: "15-60 W",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Una estación de soldado permite:",
+                options: ["Regular temperatura", "Regular voltaje de la casa", "Medir corriente", "Pintar la estructura a soldar"],
+                answer: "Regular temperatura",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Por qué no debe moverse el conductor mientras enfría la soldadura?",
+                options: ["Se rompe la unión", "Consume más corriente", "Aumenta el voltaje", "Cambia el color"],
+                answer: "Se rompe la unión",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Una buena soldadura presenta:",
+                options: ["Uniformidad", "Porosidad", "Grietas", "Exceso de flux"],
+                answer: "Uniformidad",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué sucede si el conductor está oxidado?",
+                options: ["Mejora la soldadura", "Dificulta la adhesión", "Baja la temperatura", "Aumenta el brillo"],
+                answer: "Dificulta la adhesión",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Cuál es la función principal del cautín?",
+                options: ["Cortar", "Calentar la unión", "Pulir", "Taladrar"],
+                answer: "Calentar la unión",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Antes de soldar, el aislamiento del conductor debe:",
+                options: ["Quitarse", "Permanecer intacto", "Derretirse", "Pintarse"],
+                answer: "Quitarse",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Después de soldar se recomienda:",
+                options: ["Revisar visualmente", "Golpear la unión", "Enfriar con agua", "Lijar inmediatamente"],
+                answer: "Revisar visualmente",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "Una estación de soldado ofrece mayor:",
+                options: ["Precisión", "Peso", "Voltaje", "Tamaño"],
+                answer: "Precisión",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Qué mejora una correcta temperatura?",
+                options: ["Humectación del estaño", "Oxidación", "Grietas", "Chispas"],
+                answer: "Humectación del estaño",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Cuándo debe aplicarse el estaño?",
+                options: ["Antes del calentamiento", "Cuando la unión esté caliente", "Al finalizar", "En frío"],
+                answer: "Cuando la unión esté caliente",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "El exceso de flux puede:",
+                options: ["Dejar residuos", "Mejorar siempre la unión", "Aumentar el amperaje", "Disminuir el peso"],
+                answer: "Dejar residuos",
+                topic: "Soldadura Blanda"
+            },
+            {
+                q: "¿Al finalizar la soldadura blanda qué inspección es recomendable?",
+                options: ["Visual", "Auditiva", "Magnética", "Química"],
+                answer: "Visual",
+                topic: "Soldadura Blanda"
+            },
+
+            // Soldadura SMAW
+            {
+                q: "¿Qué significa SMAW?",
+                options: ["Shielded Metal Arc Welding", "Soldadura Mecánica Automática", "Sistema Manual de Acero", "Ninguna de las anteriores"],
+                answer: "Shielded Metal Arc Welding",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es la fuente de calor en la soldadura SMAW?",
+                options: ["Arco eléctrico", "Gas acetileno", "Agua a presión", "Vapor caliente"],
+                answer: "Arco eléctrico",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El amperaje controla:",
+                options: ["Intensidad del arco", "Color del electrodo", "Peso de la máquina", "Longitud del cable"],
+                answer: "Intensidad del arco",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Un amperaje muy alto produce:",
+                options: ["Exceso de salpicaduras", "Menor penetración", "Arco inestable", "Mayor brillo en la careta"],
+                answer: "Exceso de salpicaduras",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Un amperaje muy bajo ocasiona:",
+                options: ["Mala penetración", "Corte del material", "Mayor velocidad de avance", "Exceso de calentamiento"],
+                answer: "Mala penetración",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El portaelectrodo sirve para:",
+                options: ["Sujetar el electrodo", "Enfriar la pieza", "Limpiar la escoria", "Medir la corriente"],
+                answer: "Sujetar el electrodo",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El cable de masa debe:",
+                options: ["Tener buen contacto con la pieza", "Estar completamente pintado", "Ser muy largo", "Colgar libremente"],
+                answer: "Tener buen contacto con la pieza",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El ciclo de trabajo de una soldadora indica:",
+                options: ["Tiempo de uso continuo permitido", "Peso del equipo", "Voltaje de salida", "Color de la carcasa"],
+                answer: "Tiempo de uso continuo permitido",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El electrodo E6013 se usa principalmente para:",
+                options: ["Trabajos generales", "Soldadura submarina", "Unión de aluminio", "Aleaciones de titanio"],
+                answer: "Trabajos generales",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El revestimiento del electrodo permite:",
+                options: ["Protección del baño de fusión", "Pintar el cordón", "Lubricar las pinzas", "Enfriar la fuente"],
+                answer: "Protección del baño de fusión",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Qué parámetro depende del diámetro del electrodo?",
+                options: ["Corriente de soldadura", "Color del recubrimiento", "Peso de la careta", "Longitud del cable de masa"],
+                answer: "Corriente de soldadura",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Antes de soldar se deben verificar principalmente:",
+                options: ["Conexiones eléctricas", "Color del piso del taller", "Iluminación únicamente", "Estado de la ventana"],
+                answer: "Conexiones eléctricas",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "La polaridad influye directamente en:",
+                options: ["Penetración del cordón", "Peso del electrodo", "Longitud de la pinza", "Pintura de la estructura"],
+                answer: "Penetración del cordón",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Una mala conexión a tierra produce:",
+                options: ["Arco inestable", "Mejor acabado", "Menor consumo eléctrico", "Mayor flexibilidad del cable"],
+                answer: "Arco inestable",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El arco eléctrico se inicia:",
+                options: ["Tocando y separando ligeramente el electrodo", "Soplando la punta", "Golpeando con fuerza el cable", "Enfriando el portaelectrodo"],
+                answer: "Tocando y separando ligeramente el electrodo",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Antes de iniciar la soldadura de chapas metálicas, ¿qué acción es indispensable?",
+                options: ["Pintar la superficie", "Limpiar la superficie de óxido, grasa y suciedad", "Mojar la superficie", "Aplicar aceite"],
+                answer: "Limpiar la superficie de óxido, grasa y suciedad",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Por qué debe eliminarse el óxido antes de soldar?",
+                options: ["Porque mejora el color del cordón", "Porque dificulta la fusión y puede generar defectos", "Porque aumenta el voltaje", "Porque reduce el peso del material"],
+                answer: "Porque dificulta la fusión y puede generar defectos",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es una ventaja de mantener un arco corto durante la soldadura?",
+                options: ["Disminuye la estabilidad", "Mejora la estabilidad del arco", "Produce mayor cantidad de humo", "Reduce la temperatura del electrodo"],
+                answer: "Mejora la estabilidad del arco",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Si el soldador avanza demasiado rápido, el cordón puede presentar:",
+                options: ["Mayor ancho", "Menor penetración", "Mejor acabado", "Mayor espesor"],
+                answer: "Menor penetración",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cómo debe ser un cordón de soldadura correctamente ejecutado?",
+                options: ["Irregular y discontinuo", "Uniforme y continuo", "Muy ancho y poroso", "Con muchas salpicaduras"],
+                answer: "Uniforme y continuo",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "La escoria debe retirarse:",
+                options: ["Solo al finalizar el proyecto", "Entre una pasada y otra", "Antes de encender la máquina", "Nunca se debe retirar"],
+                answer: "Entre una pasada y otra",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Qué herramienta se utiliza principalmente para retirar la escoria?",
+                options: ["Llave inglesa", "Martillo picador", "Taladro", "Destornillador"],
+                answer: "Martillo picador",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Después de retirar la escoria, ¿qué herramienta permite limpiar el cordón?",
+                options: ["Lima", "Cepillo de acero", "Martillo", "Cincel"],
+                answer: "Cepillo de acero",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es la función principal de la careta de soldar?",
+                options: ["Sujetar el electrodo", "Proteger los ojos y el rostro", "Reducir la corriente", "Disminuir la temperatura"],
+                answer: "Proteger los ojos y el rostro",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Por qué es obligatorio usar guantes durante la soldadura?",
+                options: ["Para sujetar mejor el electrodo", "Para proteger las manos del calor y salpicaduras", "Para evitar el ruido", "Para limpiar el cordón"],
+                answer: "Para proteger las manos del calor y salpicaduras",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Por qué no debe soldarse sobre superficies húmedas?",
+                options: ["Porque el metal cambia de color", "Porque aumenta el riesgo de descarga eléctrica", "Porque disminuye el peso", "Porque se consume más electrodo"],
+                answer: "Porque aumenta el riesgo de descarga eléctrica",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es el objetivo principal de trabajar en un área bien ventilada?",
+                options: ["Disminuir el ruido", "Reducir la exposición a humos de soldadura", "Ahorrar energía", "Mejorar el brillo del cordón"],
+                answer: "Reducir la exposición a humos de soldadura",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Qué tipo de defectos permite detectar la inspección visual?",
+                options: ["Defectos superficiales", "Defectos internos profundos", "Grietas internas invisibles", "Cambios metalúrgicos"],
+                answer: "Defectos superficiales",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Al soldar perfiles de mayor espesor normalmente se requiere:",
+                options: ["Menor corriente", "Mayor corriente de soldadura", "Menor diámetro de electrodo", "Menor voltaje de alimentación"],
+                answer: "Mayor corriente de soldadura",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "La preparación adecuada de los materiales permite:",
+                options: ["Reducir la calidad", "Mejorar la calidad de la unión soldada", "Aumentar la oxidación", "Reducir la resistencia mecánica"],
+                answer: "Mejorar la calidad de la unión soldada",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "El diámetro del electrodo debe seleccionarse principalmente según:",
+                options: ["El color del material", "El espesor del material", "El tamaño de la mesa", "La longitud del cable"],
+                answer: "El espesor del material",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Qué defecto puede producir un electrodo húmedo?",
+                options: ["Cordón brillante", "Porosidad", "Mayor penetración", "Menor consumo"],
+                answer: "Porosidad",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Los electrodos revestidos deben almacenarse:",
+                options: ["Sumergidos en agua", "En lugares secos y protegidos de la humedad", "Al aire libre", "Cerca de aceites"],
+                answer: "En lugares secos y protegidos de la humedad",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Durante la solidificación, la escoria tiene como función principal:",
+                options: ["Enfriar rápidamente el metal", "Proteger el cordón de la contaminación atmosférica", "Aumentar el peso", "Reducir el consumo eléctrico"],
+                answer: "Proteger el cordón de la contaminación atmosférica",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Por qué es importante que el cordón sea continuo?",
+                options: ["Porque mejora la resistencia mecánica", "Porque consume más electrodo", "Porque disminuye la temperatura", "Porque aumenta la oxidación"],
+                answer: "Porque mejora la resistencia mecánica",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es la posición más sencilla para realizar soldadura SMAW?",
+                options: ["Vertical", "Sobre cabeza", "Horizontal ascendente", "Plana"],
+                answer: "Plana",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Qué puede ocurrir al aplicar demasiada corriente sobre chapas delgadas?",
+                options: ["Falta de fusión", "Perforación del material", "Menor penetración", "Formación de escoria"],
+                answer: "Perforación del material",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "La porosidad en un cordón de soldadura se considera:",
+                options: ["Una característica normal", "Un defecto de soldadura", "Un acabado superficial", "Un tratamiento térmico"],
+                answer: "Un defecto de soldadura",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "Comparado con el electrodo E6013, el electrodo E6011 se caracteriza por:",
+                options: ["Tener menor penetración", "Tener mayor penetración", "Utilizarse únicamente en acero inoxidable", "No producir arco eléctrico"],
+                answer: "Tener mayor penetración",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuál es el primer método de control de calidad aplicado a una soldadura terminada?",
+                options: ["Radiografía industrial", "Ultrasonido", "Inspección visual", "Ensayo destructivo"],
+                answer: "Inspección visual",
+                topic: "Soldadura SMAW"
+            },
+            {
+                q: "¿Cuándo debe utilizarse el Equipo de Protección Personal (EPP) durante la soldadura?",
+                options: ["Solo al iniciar el trabajo", "Únicamente durante el encendido del arco", "Durante toda la operación de soldadura", "Solo al limpiar la escoria"],
+                answer: "Durante toda la operación de soldadura",
+                topic: "Soldadura SMAW"
+            }
+        ];
+
+        let studentName = "";
+        let selectedQuestions = [];
+        let currentQuestionIdx = 0;
+        let scoreCorrect = 0;
+        let scoreIncorrect = 0;
+        let timer = null;
+        let timeLeft = 30;
+        let isAudioMuted = false;
+        let answerSubmitted = false;
+        let audioCtx = null;
+
+        // URL de Google Apps Script para guardar resultados centralizados en Google Sheets.
+        // Reemplaza comillas vacías con la URL que obtengas de tu Google Apps Script.
+        const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwNgF7q68AM5HT_CKitlJE4ZSpwGT9S84l0l4l7IclnjIJifGrLMpZJzYZ0NNcoJ2BJ/exec";
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isAudioMuted) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.2); // A5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'incorrect') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25); // A2
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'tick') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.03, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'finish') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    osc.frequency.setValueAtTime(880, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                }
+            } catch (e) {
+                console.warn("Audio unavailable:", e);
+            }
+        }
+
+        function toggleAudio() {
+            isAudioMuted = !isAudioMuted;
+            const icon = document.getElementById('soundIcon');
+            if (isAudioMuted) {
+                icon.className = "fa-solid fa-volume-xmark text-red-400";
+            } else {
+                icon.className = "fa-solid fa-volume-high text-cyan-400";
+            }
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function validateNameInput() {
+            const input = document.getElementById('studentName');
+            const err = document.getElementById('nameError');
+            if (input.value.trim().length > 0) {
+                err.classList.add('hidden');
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                startExam();
+            }
+        }
+
+        function startExam() {
+            const nameInput = document.getElementById('studentName');
+            studentName = nameInput.value.trim();
+
+            if (!studentName) {
+                document.getElementById('nameError').classList.remove('hidden');
+                nameInput.focus();
+                return;
+            }
+
+            initAudio();
+
+            // Select 10 random questions from bank
+            const shuffledBank = shuffleArray(RAW_QUESTION_BANK);
+            const chosen10 = shuffledBank.slice(0, 10);
+
+            // Prepare questions with shuffled options
+            selectedQuestions = chosen10.map(item => {
+                const shuffledOpts = shuffleArray(item.options);
+                return {
+                    question: item.q,
+                    options: shuffledOpts,
+                    correctAnswer: item.answer,
+                    topic: item.topic || "Mecánica Básica"
+                };
+            });
+
+            // Reset scores & state
+            currentQuestionIdx = 0;
+            scoreCorrect = 0;
+            scoreIncorrect = 0;
+
+            // Update UI Screen Transition
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            document.getElementById('quizScreen').classList.add('flex');
+
+            document.getElementById('displayStudentName').innerText = studentName;
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            answerSubmitted = false;
+            clearInterval(timer);
+
+            const qData = selectedQuestions[currentQuestionIdx];
+            
+            // Header stats
+            document.getElementById('questionCounter').innerText = `Pregunta ${currentQuestionIdx + 1} de 10`;
+            document.getElementById('topicBadge').innerText = qData.topic;
+            document.getElementById('questionText').innerText = qData.question;
+
+            // Update Progress Bar
+            const progressPercent = ((currentQuestionIdx + 1) / 10) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+            // Clear feedback
+            const fb = document.getElementById('feedbackMessage');
+            fb.classList.add('opacity-0');
+
+            // Reset Next Button
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = "ml-auto px-6 py-3 bg-slate-800 text-gray-500 rounded-xl font-bold text-xs md:text-sm transition-all flex items-center gap-2 cursor-not-allowed border border-slate-700";
+
+            // Render Choices
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const prefixes = ['A', 'B', 'C', 'D'];
+
+            qData.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "glass-card w-full p-4 rounded-xl text-left flex items-start gap-3 transition-all duration-200 border text-gray-200 hover:text-white group";
+                btn.onclick = () => selectOption(idx, optText);
+                btn.id = `optBtn_${idx}`;
+
+                btn.innerHTML = `
+                    <span class="tech-font font-bold text-xs bg-slate-800 border border-slate-700 text-cyan-400 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 group-hover:border-cyan-400/50">
+                        ${prefixes[idx]}
+                    </span>
+                    <span class="text-xs md:text-sm pt-0.5 leading-snug">${optText}</span>
+                `;
+                container.appendChild(btn);
+            });
+
+            // Start Timer (25s)
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = 25;
+            updateTimerDisplay();
+
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 8 && timeLeft > 0) {
+                    playSound('tick');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerText = document.getElementById('timerText');
+            const timerRing = document.getElementById('timerRing');
+            const timerBox = document.getElementById('timerBox');
+
+            timerText.innerText = timeLeft;
+
+            // Offset 0 to 100
+            const offset = 100 - (timeLeft / 25) * 100;
+            timerRing.style.strokeDashoffset = offset;
+
+            if (timeLeft <= 8) {
+                timerRing.style.stroke = "#ef4444";
+                timerText.className = "absolute tech-font text-xs font-bold text-red-400";
+                timerBox.classList.add('pulse-danger', 'border-red-500/50');
+            } else {
+                timerRing.style.stroke = "#22d3ee";
+                timerText.className = "absolute tech-font text-xs font-bold text-white";
+                timerBox.classList.remove('pulse-danger', 'border-red-500/50');
+            }
+        }
+
+        function selectOption(chosenIdx, chosenText) {
+            if (answerSubmitted) return;
+            answerSubmitted = true;
+            clearInterval(timer);
+
+            const qData = selectedQuestions[currentQuestionIdx];
+            const isCorrect = (chosenText === qData.correctAnswer);
+
+            // Highlight chosen option
+            const chosenBtn = document.getElementById(`optBtn_${chosenIdx}`);
+            
+            if (isCorrect) {
+                scoreCorrect++;
+                chosenBtn.classList.add('opt-correct');
+                playSound('correct');
+                showFeedback(true, "¡Respuesta Correcta!");
+            } else {
+                scoreIncorrect++;
+                chosenBtn.classList.add('opt-incorrect');
+                playSound('incorrect');
+                showFeedback(false, "Respuesta Incorrecta.");
+
+                // Highlight correct option as reference
+                qData.options.forEach((optText, idx) => {
+                    if (optText === qData.correctAnswer) {
+                        const correctBtn = document.getElementById(`optBtn_${idx}`);
+                        correctBtn.classList.add('opt-correct');
+                    }
+                });
+            }
+
+            disableAllOptions();
+            enableNextBtn();
+        }
+
+        function handleTimeout() {
+            if (answerSubmitted) return;
+            answerSubmitted = true;
+            scoreIncorrect++;
+
+            playSound('incorrect');
+            showFeedback(false, "¡Tiempo agotado!");
+
+            const qData = selectedQuestions[currentQuestionIdx];
+            
+            // Show correct answer
+            qData.options.forEach((optText, idx) => {
+                if (optText === qData.correctAnswer) {
+                    const correctBtn = document.getElementById(`optBtn_${idx}`);
+                    correctBtn.classList.add('opt-correct');
+                }
+            });
+
+            disableAllOptions();
+            enableNextBtn();
+        }
+
+        function disableAllOptions() {
+            const container = document.getElementById('optionsContainer');
+            const buttons = container.getElementsByTagName('button');
+            for (let btn of buttons) {
+                btn.onclick = null;
+                btn.classList.add('disabled', 'cursor-default');
+            }
+        }
+
+        function showFeedback(isCorrect, message) {
+            const fb = document.getElementById('feedbackMessage');
+            const icon = document.getElementById('feedbackIcon');
+            const text = document.getElementById('feedbackText');
+
+            fb.classList.remove('opacity-0');
+            text.innerText = message;
+
+            if (isCorrect) {
+                fb.className = "text-xs md:text-sm font-semibold flex items-center gap-2 text-emerald-400";
+                icon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else {
+                fb.className = "text-xs md:text-sm font-semibold flex items-center gap-2 text-rose-400";
+                icon.className = "fa-solid fa-circle-xmark text-rose-400";
+            }
+        }
+
+        function enableNextBtn() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.className = "ml-auto px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer btn-glow";
+        }
+
+        function handleNextClick() {
+            if (!answerSubmitted) return;
+
+            if (currentQuestionIdx < 9) {
+                currentQuestionIdx++;
+                renderQuestion();
+            } else {
+                finishExam();
+            }
+        }
+
+        function finishExam() {
+            clearInterval(timer);
+            playSound('finish');
+
+            const finalGrade = scoreCorrect * 2; // 10 questions x 2 = 20 max
+
+            // Hide Quiz, Show Results
+            document.getElementById('quizScreen').classList.remove('flex');
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
+
+            // Set text stats
+            document.getElementById('resStudentName').innerText = `Alumno: ${studentName}`;
+            document.getElementById('finalGrade').innerText = finalGrade;
+            document.getElementById('resCorrect').innerText = scoreCorrect;
+            document.getElementById('resIncorrect').innerText = scoreIncorrect;
+
+            // Qualification badge logic according to prompt specifications
+            const badge = document.getElementById('gradeBadge');
+            if (finalGrade >= 18) {
+                badge.innerText = "Excelente";
+                badge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+                triggerConfetti();
+            } else if (finalGrade >= 14) {
+                badge.innerText = "Muy Bien";
+                badge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
+            } else if (finalGrade >= 11) {
+                badge.innerText = "Aprobado";
+                badge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6 bg-amber-500/20 text-amber-300 border border-amber-500/40";
+            } else {
+                badge.innerText = "Debe reforzar conocimientos";
+                badge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6 bg-rose-500/20 text-rose-300 border border-rose-500/40";
+            }
+
+            // Mandatory requirement: Auto download Excel / CSV on exam completion
+            setTimeout(() => {
+                downloadResultsFile();
+                sendResultsToGoogleSheet(rowData);
+            }, 600);
+        }
+
+        function sendResultsToGoogleSheet(data) {
+            if (!GOOGLE_WEBAPP_URL || GOOGLE_WEBAPP_URL.trim() === "") {
+                console.log("No se ha configurado URL de Google Apps Script. Guardado local unicamente.");
+                return;
+            }
+
+            fetch(GOOGLE_WEBAPP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            }).then(() => {
+                console.log("Resultados enviados exitosamente a Google Sheets.");
+            }).catch(err => {
+                console.error("Error al enviar a Google Sheets:", err);
+            });
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function downloadResultsFile() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+            const nota = scoreCorrect * 2;
+
+            // Row format as requested:
+            // | Fecha y hora | Nombre del alumno | Correctas | Incorrectas | Nota sobre 20 |
+            const rowData = {
+                "Fecha y hora": formattedDate,
+                "Nombre del alumno": studentName,
+                "Correctas": scoreCorrect,
+                "Incorrectas": scoreIncorrect,
+                "Nota sobre 20": nota
+            };
+
+            const filenameCleanName = studentName.replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `Examen_Mecanica_${filenameCleanName}_${year}${month}${day}.xlsx`;
+
+            // Try exporting using SheetJS (.xlsx format)
+            if (typeof XLSX !== 'undefined') {
+                try {
+                    const worksheet = XLSX.utils.json_to_sheet([rowData]);
+                    
+                    // Adjust column widths for clean Excel viewing
+                    worksheet['!cols'] = [
+                        { wch: 20 }, // Fecha y hora
+                        { wch: 30 }, // Nombre
+                        { wch: 12 }, // Correctas
+                        { wch: 12 }, // Incorrectas
+                        { wch: 15 }  // Nota sobre 20
+                    ];
+
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados");
+                    XLSX.writeFile(workbook, filename);
+                    return;
+                } catch (err) {
+                    console.warn("SheetJS export failed, falling back to UTF-8 CSV:", err);
+                }
+            }
+
+            // Fallback: Generate Excel-compatible CSV with UTF-8 BOM
+            exportCSVFallback(formattedDate, studentName, scoreCorrect, scoreIncorrect, nota);
+        }
+
+        function exportCSVFallback(dateStr, nameStr, corr, incorr, grade) {
+            const headers = ["Fecha y hora", "Nombre del alumno", "Correctas", "Incorrectas", "Nota sobre 20"];
+            const values = [`"${dateStr}"`, `"${nameStr}"`, corr, incorr, grade];
+            
+            const csvContent = "\uFEFF" + headers.join(";") + "\n" + values.join(";");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            const cleanName = nameStr.replace(/[^a-zA-Z0-9]/g, '_');
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Examen_Mecanica_${cleanName}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function restartExam() {
+            document.getElementById('studentName').value = '';
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
