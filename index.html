@@ -159,7 +159,7 @@
                 </div>
                 <div class="flex items-center gap-3 text-xs md:text-sm text-gray-300">
                     <i class="fa-solid fa-file-excel text-green-500 w-5 text-center"></i>
-                    <span>Generación automática de reporte Excel/CSV.</span>
+                    <span>Registro centralizado automático en Google Sheets / Excel.</span>
                 </div>
             </div>
 
@@ -293,8 +293,8 @@
 
             <!-- Download Notification Alert -->
             <div id="downloadAlert" class="max-w-md mx-auto bg-cyan-950/40 border border-cyan-800/60 rounded-xl p-3 mb-6 text-cyan-300 text-xs flex items-center gap-2 justify-center">
-                <i class="fa-solid fa-circle-info text-cyan-400"></i>
-                <span>El reporte de resultados se ha descargado automáticamente.</span>
+                <i class="fa-solid fa-cloud-arrow-up text-cyan-400"></i>
+                <span id="syncStatusText">Sincronizando resultado con el registro central y descargando copia...</span>
             </div>
 
             <!-- Action Buttons -->
@@ -762,10 +762,10 @@
         let isAudioMuted = false;
         let answerSubmitted = false;
         let audioCtx = null;
+        let lastExamData = null;
 
-        // URL de Google Apps Script para guardar resultados centralizados en Google Sheets.
-        // Reemplaza comillas vacías con la URL que obtengas de tu Google Apps Script.
-        const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyO6lMdF8zjWh4ZiJdvJDsm9Gz775X65FCG_RhBpldhfeZsnvaJ-7K_kmReQAEMt5p8/exec";
+        // ⚠️ PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT
+        const GOOGLE_WEBAPP_URL = "";
 
         function initAudio() {
             if (!audioCtx) {
@@ -1098,6 +1098,24 @@
 
             const finalGrade = scoreCorrect * 2; // 10 questions x 2 = 20 max
 
+            // Construct payload object
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+
+            lastExamData = {
+                "Fecha y hora": formattedDate,
+                "Nombre del alumno": studentName,
+                "Correctas": scoreCorrect,
+                "Incorrectas": scoreIncorrect,
+                "Nota sobre 20": finalGrade
+            };
+
             // Hide Quiz, Show Results
             document.getElementById('quizScreen').classList.remove('flex');
             document.getElementById('quizScreen').classList.add('hidden');
@@ -1109,7 +1127,7 @@
             document.getElementById('resCorrect').innerText = scoreCorrect;
             document.getElementById('resIncorrect').innerText = scoreIncorrect;
 
-            // Qualification badge logic according to prompt specifications
+            // Qualification badge logic
             const badge = document.getElementById('gradeBadge');
             if (finalGrade >= 18) {
                 badge.innerText = "Excelente";
@@ -1126,30 +1144,40 @@
                 badge.className = "inline-block px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider mb-6 bg-rose-500/20 text-rose-300 border border-rose-500/40";
             }
 
-            // Mandatory requirement: Auto download Excel / CSV on exam completion
+            // Sync to Google Sheets & auto download local file
             setTimeout(() => {
-                downloadResultsFile();
-                sendResultsToGoogleSheet(rowData);
+                downloadResultsFile(lastExamData);
+                sendResultsToGoogleSheet(lastExamData);
             }, 600);
         }
 
         function sendResultsToGoogleSheet(data) {
-            if (!GOOGLE_WEBAPP_URL || GOOGLE_WEBAPP_URL.trim() === "") {
-                console.log("No se ha configurado URL de Google Apps Script. Guardado local unicamente.");
+            const statusText = document.getElementById('syncStatusText');
+
+            if (!GOOGLE_WEBAPP_URL || GOOGLE_WEBAPP_URL.trim() === "" || GOOGLE_WEBAPP_URL.includes("TU_CODIGO_AQUI")) {
+                if (statusText) {
+                    statusText.innerText = "Reporte descargado localmente (URL de Google Sheets no configurada en index.html).";
+                }
                 return;
             }
 
+            // Standard payload fetch with text/plain content type to avoid CORS preflight issues on Apps Script
             fetch(GOOGLE_WEBAPP_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "text/plain;charset=utf-8"
                 },
                 body: JSON.stringify(data)
             }).then(() => {
-                console.log("Resultados enviados exitosamente a Google Sheets.");
+                if (statusText) {
+                    statusText.innerText = "¡Resultado sincronizado con Google Sheets y reporte descargado!";
+                }
             }).catch(err => {
                 console.error("Error al enviar a Google Sheets:", err);
+                if (statusText) {
+                    statusText.innerText = "Reporte descargado localmente (Error de conexión con Google Sheets).";
+                }
             });
         }
 
@@ -1163,36 +1191,23 @@
             }
         }
 
-        function downloadResultsFile() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-
-            const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
-            const nota = scoreCorrect * 2;
-
-            // Row format as requested:
-            // | Fecha y hora | Nombre del alumno | Correctas | Incorrectas | Nota sobre 20 |
-            const rowData = {
-                "Fecha y hora": formattedDate,
-                "Nombre del alumno": studentName,
+        function downloadResultsFile(passedData) {
+            const dataToExport = passedData || lastExamData || {
+                "Fecha y hora": new Date().toISOString().slice(0,16).replace('T',' '),
+                "Nombre del alumno": studentName || "Alumno",
                 "Correctas": scoreCorrect,
                 "Incorrectas": scoreIncorrect,
-                "Nota sobre 20": nota
+                "Nota sobre 20": scoreCorrect * 2
             };
 
-            const filenameCleanName = studentName.replace(/[^a-zA-Z0-9]/g, '_');
-            const filename = `Examen_Mecanica_${filenameCleanName}_${year}${month}${day}.xlsx`;
+            const filenameCleanName = (dataToExport["Nombre del alumno"] || "Alumno").replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `Examen_Mecanica_${filenameCleanName}.xlsx`;
 
             // Try exporting using SheetJS (.xlsx format)
             if (typeof XLSX !== 'undefined') {
                 try {
-                    const worksheet = XLSX.utils.json_to_sheet([rowData]);
+                    const worksheet = XLSX.utils.json_to_sheet([dataToExport]);
                     
-                    // Adjust column widths for clean Excel viewing
                     worksheet['!cols'] = [
                         { wch: 20 }, // Fecha y hora
                         { wch: 30 }, // Nombre
@@ -1211,7 +1226,13 @@
             }
 
             // Fallback: Generate Excel-compatible CSV with UTF-8 BOM
-            exportCSVFallback(formattedDate, studentName, scoreCorrect, scoreIncorrect, nota);
+            exportCSVFallback(
+                dataToExport["Fecha y hora"], 
+                dataToExport["Nombre del alumno"], 
+                dataToExport["Correctas"], 
+                dataToExport["Incorrectas"], 
+                dataToExport["Nota sobre 20"]
+            );
         }
 
         function exportCSVFallback(dateStr, nameStr, corr, incorr, grade) {
